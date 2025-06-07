@@ -146,6 +146,12 @@ def pytest_addoption(parser):
         default=None,
         help='Controller cloud to use for tests',
     )
+    parser.addoption(
+        '--postgres',
+        action='store_true',
+        default=False,
+        help='Run tests for Postgres Backend',
+    )
 
 
 def pytest_configure(config):
@@ -194,6 +200,8 @@ def pytest_collection_modifyitems(config, items):
     for cloud in all_clouds_in_smoke_tests:
         skip_marks[cloud] = pytest.mark.skip(
             reason=f'tests for {cloud} is skipped, try setting --{cloud}')
+    skip_marks['postgres'] = pytest.mark.skip(
+        reason='skipped, because --postgres option is set')
 
     cloud_to_run = _get_cloud_to_run(config)
     generic_cloud = _generic_cloud(config)
@@ -226,6 +234,8 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_marks['tpu'])
         if (not 'serve' in item.keywords) and config.getoption('--serve'):
             item.add_marker(skip_marks['serve'])
+        if ('no_postgres' in item.keywords) and config.getoption('--postgres'):
+            item.add_marker(skip_marks['postgres'])
 
     # Check if tests need to be run serially for Kubernetes and Lambda Cloud
     # We run Lambda Cloud tests serially because Lambda Cloud rate limits its
@@ -456,3 +466,13 @@ def setup_controller_cloud_env(request):
     controller_cloud = request.config.getoption('--controller-cloud')
     os.environ['PYTEST_SKYPILOT_CONTROLLER_CLOUD'] = controller_cloud
     yield controller_cloud
+
+
+@pytest.fixture(scope='session', autouse=True)
+def setup_postgres_backend_env(request):
+    """Setup Postgres Backend environment variable if --postgres is specified."""
+    if not request.config.getoption('--postgres'):
+        yield
+        return
+    os.environ['PYTEST_SKYPILOT_POSTGRES_BACKEND'] = '1'
+    yield

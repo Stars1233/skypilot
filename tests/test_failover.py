@@ -6,12 +6,13 @@ import boto3
 import botocore.exceptions
 import moto
 import pytest
+from sqlalchemy import create_engine
 
 import sky
 from sky import global_user_state
 from sky import sky_logging
 from sky.backends import cloud_vm_ray_backend
-from sky.clouds.service_catalog import aws_catalog
+from sky.catalog import aws_catalog
 from sky.provision.aws import instance as aws_instance
 from sky.utils import db_utils
 from sky.utils import env_options
@@ -19,9 +20,15 @@ from sky.utils import env_options
 
 @pytest.fixture
 def _mock_db_conn(tmp_path, monkeypatch):
+    # Create a temporary database file
     db_path = tmp_path / 'state_testing.db'
-    db_conn = db_utils.SQLiteConn(str(db_path), global_user_state.create_table)
-    monkeypatch.setattr(global_user_state, '_DB', db_conn)
+
+    sqlalchemy_engine = create_engine(f'sqlite:///{db_path}')
+
+    monkeypatch.setattr(global_user_state, 'SQLALCHEMY_ENGINE',
+                        sqlalchemy_engine)
+
+    global_user_state.create_table()
 
 
 @pytest.mark.parametrize('enable_all_clouds', [[sky.AWS()]], indirect=True)

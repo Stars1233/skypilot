@@ -89,7 +89,7 @@ TASK_ID_LIST_ENV_VAR = f'{SKYPILOT_ENV_VAR_PREFIX}TASK_IDS'
 # cluster yaml is updated.
 #
 # TODO(zongheng,zhanghao): make the upgrading of skylet automatic?
-SKYLET_VERSION = '12'
+SKYLET_VERSION = '13'
 # The version of the lib files that skylet/jobs use. Whenever there is an API
 # change for the job_lib or log_lib, we need to bump this version, so that the
 # user can be notified to update their SkyPilot version on the remote cluster.
@@ -367,6 +367,7 @@ RCLONE_CACHE_REFRESH_INTERVAL = 10
 OVERRIDEABLE_CONFIG_KEYS_IN_TASK: List[Tuple[str, ...]] = [
     ('docker', 'run_options'),
     ('nvidia_gpus', 'disable_ecc'),
+    ('ssh', 'pod_config'),
     ('kubernetes', 'pod_config'),
     ('kubernetes', 'provision_timeout'),
     ('gcp', 'managed_instance_group'),
@@ -378,7 +379,8 @@ OVERRIDEABLE_CONFIG_KEYS_IN_TASK: List[Tuple[str, ...]] = [
 # we skip the following keys because they are meant to be client-side configs.
 SKIPPED_CLIENT_OVERRIDE_KEYS: List[Tuple[str, ...]] = [('admin_policy',),
                                                        ('api_server',),
-                                                       ('allowed_clouds',)]
+                                                       ('allowed_clouds',),
+                                                       ('workspaces',), ('db',)]
 
 # Constants for Azure blob storage
 WAIT_FOR_STORAGE_ACCOUNT_CREATION = 60
@@ -405,3 +407,15 @@ SKY_USER_FILE_PATH = '~/.sky/generated'
 
 # Environment variable that is set to 'true' if this is a skypilot server.
 ENV_VAR_IS_SKYPILOT_SERVER = 'IS_SKYPILOT_SERVER'
+
+SKYPILOT_DEFAULT_WORKSPACE = 'default'
+
+# BEGIN constants used for service catalog.
+HOSTED_CATALOG_DIR_URL = 'https://raw.githubusercontent.com/skypilot-org/skypilot-catalog/master/catalogs'  # pylint: disable=line-too-long
+HOSTED_CATALOG_DIR_URL_S3_MIRROR = 'https://skypilot-catalog.s3.us-east-1.amazonaws.com/catalogs'  # pylint: disable=line-too-long
+CATALOG_SCHEMA_VERSION = 'v7'
+CATALOG_DIR = '~/.sky/catalogs'
+ALL_CLOUDS = ('aws', 'azure', 'gcp', 'ibm', 'lambda', 'scp', 'oci',
+              'kubernetes', 'runpod', 'vast', 'vsphere', 'cudo', 'fluidstack',
+              'paperspace', 'do', 'nebius', 'ssh')
+# END constants used for service catalog.

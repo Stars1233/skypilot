@@ -228,6 +228,7 @@ def override_request_env_and_config(
     """Override the environment and SkyPilot config for a request."""
     original_env = os.environ.copy()
     os.environ.update(request_body.env_vars)
+    # Note: may be overridden by AuthProxyMiddleware.
     user = models.User(id=request_body.env_vars[constants.USER_ID_ENV_VAR],
                        name=request_body.env_vars[constants.USER_ENV_VAR])
     global_user_state.add_or_update_user(user)
@@ -238,8 +239,11 @@ def override_request_env_and_config(
         client_command=request_body.entrypoint_command,
         using_remote_api_server=request_body.using_remote_api_server)
     try:
+        logger.debug(
+            f'override path: {request_body.override_skypilot_config_path}')
         with skypilot_config.override_skypilot_config(
-                request_body.override_skypilot_config):
+                request_body.override_skypilot_config,
+                request_body.override_skypilot_config_path):
             yield
     finally:
         # We need to call the save_timeline() since atexit will not be
